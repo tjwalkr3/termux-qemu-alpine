@@ -77,10 +77,10 @@ do_start() {
     send \"stty cols 80 rows 24\r\"
 
     expect \"localhost:~#\"
-    send \"ip link set dev eth0 up\r\"
+    send \"setup-interfaces -a\r\"
 
     expect \"localhost:~#\"
-    send \"udhcpc\r\"
+    send \"rc-service networking start\r\"
 
     expect \"localhost:~#\"
     send \"echo http://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/main >> /etc/apk/repositories\r\"
@@ -119,10 +119,10 @@ do_start() {
     send \"rc-service tailscale start\r\"
 
     expect \"localhost:~#\"
-    send \"stty -echo\r\"
+    send \"export HISTFILE=/dev/null; stty -echo\r\"
 
     expect \"localhost:~#\"
-    send \"tailscale up --auth-key=\$env(TS_KEY) --hostname=alpine-vm; history -c 2>/dev/null; true\r\"
+    send \"tailscale up --auth-key=\$env(TS_KEY) --hostname=alpine-vm\r\"
 
     expect \"localhost:~#\"
     send \"stty echo\r\"
