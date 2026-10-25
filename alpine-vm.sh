@@ -9,6 +9,9 @@ DISK_SIZE="2G"
 RAM="1024"
 CPUS="2"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env"
+
 install_qemu() {
     pkg update -y
     pkg upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
@@ -45,6 +48,10 @@ do_init() {
         dd if=/dev/zero of="$VMDIR/edk2-aarch64-vars.fd" bs=1 count=0 seek="$(stat -c%s "$CODE_FW")" 2>/dev/null
     fi
 
+    if [ ! -f "$ENV_FILE" ]; then
+        echo "Note: create $ENV_FILE with TAILSCALE_AUTH_KEY=... before running --start."
+    fi
+
     echo "Init complete. Run with --start to boot the VM."
 }
 
@@ -57,6 +64,9 @@ do_start() {
         exit 1
     fi
 
+    set -a; . "$ENV_FILE"; set +a
+    : "${TAILSCALE_AUTH_KEY:?not set in $ENV_FILE}"
+
     echo ">>> Booting VM (stateless: -snapshot enabled, disk changes are discarded on exit)..."
 
     expect -c "
@@ -66,7 +76,7 @@ do_start() {
         -drive if=pflash,format=raw,file=$VMDIR/edk2-aarch64-vars.fd \
         -drive file=$VMDIR/alpine.qcow2,if=virtio,format=qcow2 -snapshot \
         -cdrom $VMDIR/alpine.iso \
-        -netdev user,id=n1,dns=8.8.8.8,hostfwd=tcp::2222-:22 \
+        -netdev user,id=n1,dns=9.9.9.9 \
         -device virtio-net-pci,netdev=n1 -nographic
 
     expect \"localhost login:\"
@@ -89,6 +99,42 @@ do_start() {
 
     expect \"localhost:~#\"
     send \"apk upgrade --available\r\"
+
+    expect \"localhost:~#\"
+    send \"echo 'root:root' | chpasswd\r\"
+
+    expect \"localhost:~#\"
+    send \"apk add dropbear dropbear-openrc\r\"
+
+    expect \"localhost:~#\"
+    send \"rc-update add dropbear default\r\"
+
+    expect \"localhost:~#\"
+    send \"rc-service dropbear start\r\"
+
+    expect \"localhost:~#\"
+    send \"apk add tailscale tailscale-openrc\r\"
+
+    expect \"localhost:~#\"
+    send \"modprobe tun\r\"
+
+    expect \"localhost:~#\"
+    send \"rc-update add tailscale default\r\"
+
+    expect \"localhost:~#\"
+    send \"rc-service tailscale start\r\"
+
+    expect \"localhost:~#\"
+    send \"stty -echo\r\"
+
+    expect \"localhost:~#\"
+    send \"tailscale up --auth-key=\$env(TAILSCALE_AUTH_KEY) --hostname=alpine-vm; history -c 2>/dev/null; true\r\"
+
+    expect \"localhost:~#\"
+    send \"stty echo\r\"
+
+    expect \"localhost:~#\"
+    send \"tailscale status\r\"
 
     expect \"localhost:~#\"
     interact
