@@ -67,7 +67,7 @@ do_start() {
         -drive if=pflash,format=raw,file=$VMDIR/edk2-aarch64-vars.fd \
         -drive file=$VMDIR/alpine.qcow2,if=virtio,format=qcow2 -snapshot \
         -cdrom $VMDIR/alpine.iso \
-        -netdev user,id=n1,dns=9.9.9.9 \
+        -netdev user,id=n1,dns=1.1.1.1 \
         -device virtio-net-pci,netdev=n1 -nographic
 
     expect \"localhost login:\"
