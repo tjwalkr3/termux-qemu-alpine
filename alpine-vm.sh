@@ -87,21 +87,6 @@ do_start() {
     expect \"localhost:~#\"
     send \"apk update\r\"
 
-    expect \"localhost:~#\"
-    send \"apk add docker openrc\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-service cgroups start\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-service docker start --nodeps\r\"
-
-    expect \"localhost:~#\"
-    send \"until \\[ -S /var/run/docker.sock \\]; do sleep 1; done\r\"
-
-    expect \"localhost:~#\"
-    send \"docker run --rm hello-world\r\"
-
     interact
     "
 }
