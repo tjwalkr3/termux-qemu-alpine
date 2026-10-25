@@ -9,9 +9,6 @@ DISK_SIZE="2G"
 RAM="1024"
 CPUS="2"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env"
-
 install_qemu() {
     pkg update -y
     pkg upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
@@ -44,12 +41,7 @@ do_init() {
     fi
 
     if [ ! -f "$VMDIR/edk2-aarch64-vars.fd" ]; then
-        # NVRAM vars file must match the code file's size exactly.
         dd if=/dev/zero of="$VMDIR/edk2-aarch64-vars.fd" bs=1 count=0 seek="$(stat -c%s "$CODE_FW")" 2>/dev/null
-    fi
-
-    if [ ! -f "$ENV_FILE" ]; then
-        echo "Note: create $ENV_FILE with TAILSCALE_AUTH_KEY=... before running --start."
     fi
 
     echo "Init complete. Run with --start to boot the VM."
@@ -64,8 +56,7 @@ do_start() {
         exit 1
     fi
 
-    set -a; . "$ENV_FILE"; set +a
-    : "${TAILSCALE_AUTH_KEY:?not set in $ENV_FILE}"
+    : "${TS_KEY:?usage: TS_KEY=tskey-auth-... $0 --start}"
 
     echo ">>> Booting VM (stateless: -snapshot enabled, disk changes are discarded on exit)..."
 
@@ -128,7 +119,7 @@ do_start() {
     send \"stty -echo\r\"
 
     expect \"localhost:~#\"
-    send \"tailscale up --auth-key=\$env(TAILSCALE_AUTH_KEY) --hostname=alpine-vm; history -c 2>/dev/null; true\r\"
+    send \"tailscale up --auth-key=\$env(TS_KEY) --hostname=alpine-vm; history -c 2>/dev/null; true\r\"
 
     expect \"localhost:~#\"
     send \"stty echo\r\"
