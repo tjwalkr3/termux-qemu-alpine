@@ -87,6 +87,10 @@ do_start() {
     expect \"localhost:~#\"
     send \"apk update\r\"
 
+    expect \"localhost:~#\"
+    send \"apk upgrade --available\r\"
+
+    expect \"localhost:~#\"
     interact
     "
 }
