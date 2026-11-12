@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -e
 
-ALPINE_VERSION="3.24"
-ISO_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/releases/aarch64/alpine-virt-${ALPINE_VERSION}.2-aarch64.iso"
+ALPINE_VERSION="3.24.4"
+ISO_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/releases/aarch64/alpine-virt-${ALPINE_VERSION}-arch64.iso"
 VMDIR="$HOME/alpine-vm"
 CODE_FW="$PREFIX/share/qemu/edk2-aarch64-code.fd"
 DISK_SIZE="2G"
@@ -56,8 +56,6 @@ do_start() {
         exit 1
     fi
 
-    : "${TS_KEY:?usage: TS_KEY=tskey-auth-... $0 --start}"
-
     echo ">>> Booting VM (stateless: -snapshot enabled, disk changes are discarded on exit)..."
 
     expect -c "
@@ -93,42 +91,6 @@ do_start() {
 
     expect \"localhost:~#\"
     send \"apk upgrade --available\r\"
-
-    expect \"localhost:~#\"
-    send \"echo 'root:root' | chpasswd\r\"
-
-    expect \"localhost:~#\"
-    send \"apk add dropbear dropbear-openrc\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-update add dropbear default\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-service dropbear start\r\"
-
-    expect \"localhost:~#\"
-    send \"apk add tailscale tailscale-openrc\r\"
-
-    expect \"localhost:~#\"
-    send \"modprobe tun\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-update add tailscale default\r\"
-
-    expect \"localhost:~#\"
-    send \"rc-service tailscale start\r\"
-
-    expect \"localhost:~#\"
-    send \"export HISTFILE=/dev/null; stty -echo\r\"
-
-    expect \"localhost:~#\"
-    send \"tailscale up --auth-key=\$env(TS_KEY) --hostname=alpine-vm\r\"
-
-    expect \"localhost:~#\"
-    send \"stty echo\r\"
-
-    expect \"localhost:~#\"
-    send \"tailscale status\r\"
 
     expect \"localhost:~#\"
     interact
