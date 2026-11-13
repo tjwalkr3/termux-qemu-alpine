@@ -2,7 +2,7 @@
 set -e
 
 ALPINE_VERSION="3.24.4"
-ALPINE_BRANCH="v${ALPINE_VERSION%.*}"   # e.g. 3.24.4 -> v3.24
+ALPINE_BRANCH="v${ALPINE_VERSION%.*}"
 ISO_NAME="alpine-virt-${ALPINE_VERSION}-aarch64.iso"
 ISO_URL="https://dl-cdn.alpinelinux.org/alpine/${ALPINE_BRANCH}/releases/aarch64/${ISO_NAME}"
 REPO_BASE="http://dl-cdn.alpinelinux.org/alpine/${ALPINE_BRANCH}"
