@@ -2,7 +2,10 @@
 set -e
 
 ALPINE_VERSION="3.24.4"
-ISO_URL="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/releases/aarch64/alpine-virt-${ALPINE_VERSION}-arch64.iso"
+ALPINE_BRANCH="v${ALPINE_VERSION%.*}"   # e.g. 3.24.4 -> v3.24
+ISO_NAME="alpine-virt-${ALPINE_VERSION}-aarch64.iso"
+ISO_URL="https://dl-cdn.alpinelinux.org/alpine/${ALPINE_BRANCH}/releases/aarch64/${ISO_NAME}"
+REPO_BASE="http://dl-cdn.alpinelinux.org/alpine/${ALPINE_BRANCH}"
 VMDIR="$HOME/alpine-vm"
 CODE_FW="$PREFIX/share/qemu/edk2-aarch64-code.fd"
 DISK_SIZE="2G"
@@ -25,8 +28,13 @@ do_init() {
     mkdir -p "$VMDIR"
 
     if [ ! -f "$VMDIR/alpine.iso" ]; then
-        echo ">>> Downloading ${ISO_URL##*/}..."
-        curl -fL -o "$VMDIR/alpine.iso.part" "$ISO_URL"
+        echo ">>> Downloading ${ISO_NAME}..."
+        if ! curl -fL -o "$VMDIR/alpine.iso.part" "$ISO_URL"; then
+            rm -f "$VMDIR/alpine.iso.part"
+            echo "Download failed: $ISO_URL" >&2
+            echo "Check available ISOs at ${REPO_BASE}/releases/aarch64/ and adjust ALPINE_VERSION." >&2
+            exit 1
+        fi
         mv "$VMDIR/alpine.iso.part" "$VMDIR/alpine.iso"
     fi
 
@@ -81,10 +89,10 @@ do_start() {
     send \"rc-service networking start\r\"
 
     expect \"localhost:~#\"
-    send \"echo http://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/main >> /etc/apk/repositories\r\"
+    send \"echo ${REPO_BASE}/main >> /etc/apk/repositories\r\"
 
     expect \"localhost:~#\"
-    send \"echo http://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}/community >> /etc/apk/repositories\r\"
+    send \"echo ${REPO_BASE}/community >> /etc/apk/repositories\r\"
 
     expect \"localhost:~#\"
     send \"apk update\r\"
