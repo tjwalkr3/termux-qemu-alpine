@@ -16,6 +16,7 @@ VM_ROOT_PASSWORD="Password123!"
 VM_USER="user"
 VM_USER_FULLNAME="John Doe"
 VM_USER_PASSWORD="Password123!"
+GAME_URL="https://github.com/i7/counterfeit-monkey/releases/download/r11.1/CounterfeitMonkey-11.gblorb"
 
 install_qemu() {
     pkg update -y
@@ -100,6 +101,7 @@ do_init() {
             {Which ssh server*] } {!make -C /tmp/glulxe OPTIONS='-O2 -DOS_UNIX -DUNIX_RAND_GETRANDOM'}
             {Which ssh server*] } {!install /tmp/glulxe/glulxe /usr/local/bin/ && lbu add /usr/local/bin/glulxe}
             {Which ssh server*] } {!rm -rf /tmp/cheapglk /tmp/glulxe; apk del .build}
+            {Which ssh server*] } {!su -l $VM_USER -c 'wget $GAME_URL'}
             {Which ssh server*] } {openssh}
             {Which disk(s) would you like to use*] } {vda}
             {How would you like to use it*] } {sys}
