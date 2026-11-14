@@ -92,6 +92,7 @@ do_init() {
             {New password: } {$VM_USER_PASSWORD}
             {Retype password: } {$VM_USER_PASSWORD}
             {Enter ssh key or URL*] } {none}
+            {Which ssh server*] } {!apk add sudo; echo '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel}
             {Which ssh server*] } {openssh}
             {Which disk(s) would you like to use*] } {vda}
             {How would you like to use it*] } {sys}
