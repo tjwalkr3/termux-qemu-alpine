@@ -93,6 +93,13 @@ do_init() {
             {Retype password: } {$VM_USER_PASSWORD}
             {Enter ssh key or URL*] } {none}
             {Which ssh server*] } {!apk add sudo; echo -e 'Defaults lecture=never\n%wheel ALL=(ALL) ALL' > /etc/sudoers.d/wheel}
+            {Which ssh server*] } {!apk add --virtual .build gcc musl-dev make git}
+            {Which ssh server*] } {!git clone --depth 1 https://github.com/erkyrath/cheapglk /tmp/cheapglk}
+            {Which ssh server*] } {!git clone --depth 1 https://github.com/erkyrath/glulxe /tmp/glulxe}
+            {Which ssh server*] } {!make -C /tmp/cheapglk}
+            {Which ssh server*] } {!make -C /tmp/glulxe OPTIONS='-O2 -DOS_UNIX -DUNIX_RAND_GETRANDOM'}
+            {Which ssh server*] } {!install /tmp/glulxe/glulxe /usr/local/bin/ && lbu add /usr/local/bin/glulxe}
+            {Which ssh server*] } {!rm -rf /tmp/cheapglk /tmp/glulxe; apk del .build}
             {Which ssh server*] } {openssh}
             {Which disk(s) would you like to use*] } {vda}
             {How would you like to use it*] } {sys}
